@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>美住町バス比較</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>美住町バス比較</h1>
+            <p id="current-date">--年--月--日 (--)</p>
+            <p id="current-time">--:--</p>
+            <p id="calendar-type">平日ダイヤ</p>
+        </header>
+        
+        <div class="bus-container">
+            <div class="bus-card" id="chigasaki">
+                <h2>茅ヶ崎駅行き</h2>
+                <div class="next-bus">
+                    <p class="next-time">--:--</p>
+                    <p class="remaining">あと--分</p>
+                </div>
+                <div class="following-buses">
+                    <p>次: --:-- (あと--分)</p>
+                </div>
+            </div>
+            
+            <div class="bus-card" id="tsujido">
+                <h2>辻堂駅行き</h2>
+                <div class="next-bus">
+                    <p class="next-time">--:--</p>
+                    <p class="remaining">あと--分</p>
+                </div>
+                <div class="following-buses">
+                    <p>次: --:-- (あと--分)</p>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>データ更新時刻: <span id="last-updated">----/--/-- --:--</span></p>
+        </footer>
+    </div>
+    
+    <script src="js/app.js"></script>
+</body>
+</html>
