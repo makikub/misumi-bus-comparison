@@ -3,6 +3,238 @@ let busData = null;
 let holidayData = null;
 let currentDayType = 'weekday'; // 'weekday', 'saturday', 'holiday'
 const USE_SAMPLE_DATA = true; // 開発時はサンプルデータを使用
+const USE_INLINE_DATA = true; // ファイル読み込みエラー時はインラインデータを使用
+
+// インラインサンプルデータ（ファイル読み込みエラー時に使用）
+const INLINE_BUS_DATA = {
+  "chigasaki": {
+    "weekday": [
+      {"hour": "6", "minute": "21"},
+      {"hour": "6", "minute": "36"},
+      {"hour": "6", "minute": "55"},
+      {"hour": "7", "minute": "19"},
+      {"hour": "7", "minute": "48"},
+      {"hour": "8", "minute": "18"},
+      {"hour": "8", "minute": "58"},
+      {"hour": "9", "minute": "26"},
+      {"hour": "9", "minute": "56"},
+      {"hour": "10", "minute": "26"},
+      {"hour": "10", "minute": "56"},
+      {"hour": "11", "minute": "26"},
+      {"hour": "11", "minute": "56"},
+      {"hour": "12", "minute": "26"},
+      {"hour": "12", "minute": "56"},
+      {"hour": "13", "minute": "26"},
+      {"hour": "13", "minute": "56"},
+      {"hour": "14", "minute": "26"},
+      {"hour": "14", "minute": "56"},
+      {"hour": "15", "minute": "26"},
+      {"hour": "15", "minute": "56"},
+      {"hour": "16", "minute": "28"},
+      {"hour": "16", "minute": "56"},
+      {"hour": "17", "minute": "28"},
+      {"hour": "17", "minute": "56"},
+      {"hour": "18", "minute": "16"},
+      {"hour": "18", "minute": "36"},
+      {"hour": "18", "minute": "56"},
+      {"hour": "19", "minute": "16"},
+      {"hour": "19", "minute": "36"},
+      {"hour": "20", "minute": "26"},
+      {"hour": "20", "minute": "56"},
+      {"hour": "21", "minute": "26"},
+      {"hour": "21", "minute": "56"},
+      {"hour": "22", "minute": "31"}
+    ],
+    "saturday": [
+      {"hour": "6", "minute": "55"},
+      {"hour": "7", "minute": "25"},
+      {"hour": "7", "minute": "55"},
+      {"hour": "8", "minute": "25"},
+      {"hour": "8", "minute": "55"},
+      {"hour": "9", "minute": "25"},
+      {"hour": "9", "minute": "55"},
+      {"hour": "10", "minute": "25"},
+      {"hour": "10", "minute": "55"},
+      {"hour": "11", "minute": "25"},
+      {"hour": "11", "minute": "55"},
+      {"hour": "12", "minute": "25"},
+      {"hour": "12", "minute": "55"},
+      {"hour": "13", "minute": "25"},
+      {"hour": "13", "minute": "55"},
+      {"hour": "14", "minute": "25"},
+      {"hour": "14", "minute": "55"},
+      {"hour": "15", "minute": "25"},
+      {"hour": "15", "minute": "55"},
+      {"hour": "16", "minute": "25"},
+      {"hour": "16", "minute": "55"},
+      {"hour": "17", "minute": "25"},
+      {"hour": "17", "minute": "55"},
+      {"hour": "18", "minute": "25"},
+      {"hour": "18", "minute": "55"},
+      {"hour": "19", "minute": "25"},
+      {"hour": "19", "minute": "55"},
+      {"hour": "20", "minute": "25"},
+      {"hour": "20", "minute": "55"},
+      {"hour": "21", "minute": "25"},
+      {"hour": "21", "minute": "55"}
+    ],
+    "holiday": [
+      {"hour": "6", "minute": "55"},
+      {"hour": "7", "minute": "25"},
+      {"hour": "7", "minute": "55"},
+      {"hour": "8", "minute": "25"},
+      {"hour": "8", "minute": "55"},
+      {"hour": "9", "minute": "25"},
+      {"hour": "9", "minute": "55"},
+      {"hour": "10", "minute": "25"},
+      {"hour": "10", "minute": "55"},
+      {"hour": "11", "minute": "25"},
+      {"hour": "11", "minute": "55"},
+      {"hour": "12", "minute": "25"},
+      {"hour": "12", "minute": "55"},
+      {"hour": "13", "minute": "25"},
+      {"hour": "13", "minute": "55"},
+      {"hour": "14", "minute": "25"},
+      {"hour": "14", "minute": "55"},
+      {"hour": "15", "minute": "25"},
+      {"hour": "15", "minute": "55"},
+      {"hour": "16", "minute": "25"},
+      {"hour": "16", "minute": "55"},
+      {"hour": "17", "minute": "25"},
+      {"hour": "17", "minute": "55"},
+      {"hour": "18", "minute": "25"},
+      {"hour": "18", "minute": "55"},
+      {"hour": "19", "minute": "25"},
+      {"hour": "19", "minute": "55"},
+      {"hour": "20", "minute": "25"},
+      {"hour": "20", "minute": "55"},
+      {"hour": "21", "minute": "25"},
+      {"hour": "21", "minute": "55"}
+    ]
+  },
+  "tsujido": {
+    "weekday": [
+      {"hour": "5", "minute": "57"},
+      {"hour": "6", "minute": "16"},
+      {"hour": "6", "minute": "34"},
+      {"hour": "6", "minute": "46"},
+      {"hour": "6", "minute": "58"},
+      {"hour": "7", "minute": "10"},
+      {"hour": "7", "minute": "25"},
+      {"hour": "7", "minute": "40"},
+      {"hour": "7", "minute": "55"},
+      {"hour": "8", "minute": "17"},
+      {"hour": "8", "minute": "37"},
+      {"hour": "9", "minute": "05"},
+      {"hour": "9", "minute": "35"},
+      {"hour": "10", "minute": "05"},
+      {"hour": "10", "minute": "35"},
+      {"hour": "11", "minute": "05"},
+      {"hour": "11", "minute": "35"},
+      {"hour": "12", "minute": "05"},
+      {"hour": "12", "minute": "35"},
+      {"hour": "13", "minute": "05"},
+      {"hour": "13", "minute": "35"},
+      {"hour": "14", "minute": "05"},
+      {"hour": "14", "minute": "35"},
+      {"hour": "15", "minute": "05"},
+      {"hour": "15", "minute": "35"},
+      {"hour": "16", "minute": "07"},
+      {"hour": "16", "minute": "35"},
+      {"hour": "17", "minute": "07"},
+      {"hour": "17", "minute": "35"},
+      {"hour": "17", "minute": "55"},
+      {"hour": "18", "minute": "15"},
+      {"hour": "18", "minute": "35"},
+      {"hour": "18", "minute": "55"},
+      {"hour": "19", "minute": "15"},
+      {"hour": "19", "minute": "35"},
+      {"hour": "20", "minute": "05"},
+      {"hour": "20", "minute": "35"},
+      {"hour": "21", "minute": "05"},
+      {"hour": "21", "minute": "35"},
+      {"hour": "22", "minute": "10"}
+    ],
+    "saturday": [
+      {"hour": "6", "minute": "25"},
+      {"hour": "7", "minute": "05"},
+      {"hour": "7", "minute": "35"},
+      {"hour": "8", "minute": "05"},
+      {"hour": "8", "minute": "35"},
+      {"hour": "9", "minute": "05"},
+      {"hour": "9", "minute": "35"},
+      {"hour": "10", "minute": "05"},
+      {"hour": "10", "minute": "35"},
+      {"hour": "11", "minute": "05"},
+      {"hour": "11", "minute": "35"},
+      {"hour": "12", "minute": "05"},
+      {"hour": "12", "minute": "35"},
+      {"hour": "13", "minute": "05"},
+      {"hour": "13", "minute": "35"},
+      {"hour": "14", "minute": "05"},
+      {"hour": "14", "minute": "35"},
+      {"hour": "15", "minute": "05"},
+      {"hour": "15", "minute": "35"},
+      {"hour": "16", "minute": "05"},
+      {"hour": "16", "minute": "35"},
+      {"hour": "17", "minute": "05"},
+      {"hour": "17", "minute": "35"},
+      {"hour": "18", "minute": "05"},
+      {"hour": "18", "minute": "35"},
+      {"hour": "19", "minute": "05"},
+      {"hour": "19", "minute": "35"},
+      {"hour": "20", "minute": "05"},
+      {"hour": "20", "minute": "50"},
+      {"hour": "21", "minute": "50"}
+    ],
+    "holiday": [
+      {"hour": "6", "minute": "25"},
+      {"hour": "7", "minute": "05"},
+      {"hour": "7", "minute": "35"},
+      {"hour": "8", "minute": "05"},
+      {"hour": "8", "minute": "35"},
+      {"hour": "9", "minute": "05"},
+      {"hour": "9", "minute": "35"},
+      {"hour": "10", "minute": "05"},
+      {"hour": "10", "minute": "35"},
+      {"hour": "11", "minute": "05"},
+      {"hour": "11", "minute": "35"},
+      {"hour": "12", "minute": "05"},
+      {"hour": "12", "minute": "35"},
+      {"hour": "13", "minute": "05"},
+      {"hour": "13", "minute": "35"},
+      {"hour": "14", "minute": "05"},
+      {"hour": "14", "minute": "35"},
+      {"hour": "15", "minute": "05"},
+      {"hour": "15", "minute": "35"},
+      {"hour": "16", "minute": "05"},
+      {"hour": "16", "minute": "35"},
+      {"hour": "17", "minute": "05"},
+      {"hour": "17", "minute": "35"},
+      {"hour": "18", "minute": "05"},
+      {"hour": "18", "minute": "35"},
+      {"hour": "19", "minute": "05"},
+      {"hour": "19", "minute": "35"},
+      {"hour": "20", "minute": "05"},
+      {"hour": "20", "minute": "50"},
+      {"hour": "21", "minute": "50"}
+    ]
+  }
+};
+
+// インライン祝日データ
+const INLINE_HOLIDAY_DATA = {
+  "2025-04-29": "昭和の日",
+  "2025-05-03": "憲法記念日",
+  "2025-05-04": "みどりの日",
+  "2025-05-05": "こどもの日",
+  "2025-05-06": "振替休日",
+  "2025-07-21": "海の日",
+  "2025-08-11": "山の日",
+  "2025-09-15": "敬老の日",
+  "2025-09-23": "秋分の日",
+  "2025-10-13": "スポーツの日"
+};
 
 // ページ読み込み時の処理
 document.addEventListener('DOMContentLoaded', () => {
@@ -21,8 +253,22 @@ document.addEventListener('DOMContentLoaded', () => {
 // バスデータの取得
 async function fetchBusData() {
     try {
+        if (USE_INLINE_DATA) {
+            // インラインデータを使用
+            console.log('インラインバスデータを使用します');
+            busData = INLINE_BUS_DATA;
+            
+            // 最終更新時間の表示
+            document.getElementById('last-updated').textContent = new Date().toLocaleString('ja-JP');
+            
+            // バス時刻の表示更新
+            updateBusTimes();
+            return;
+        }
+        
         // 開発時はサンプルデータを使用
         const dataUrl = USE_SAMPLE_DATA ? 'data/sample_bus_timetable.json' : 'data/bus_timetable.json';
+        console.log(`ファイルからデータを読み込みます: ${dataUrl}`);
         const response = await fetch(dataUrl);
         
         if (!response.ok) {
@@ -38,6 +284,16 @@ async function fetchBusData() {
         updateBusTimes();
     } catch (error) {
         console.error('バスデータの取得に失敗しました:', error);
+        
+        if (USE_INLINE_DATA) {
+            // エラー時にインラインデータを使用
+            console.log('ファイル読み込みエラーのためインラインデータを使用します');
+            busData = INLINE_BUS_DATA;
+            document.getElementById('last-updated').textContent = new Date().toLocaleString('ja-JP') + ' (内蔵データ)';
+            updateBusTimes();
+            return;
+        }
+        
         document.querySelector('#chigasaki .next-time').textContent = '--:--';
         document.querySelector('#chigasaki .remaining').textContent = 'データ取得エラー';
         document.querySelector('#tsujido .next-time').textContent = '--:--';
@@ -48,8 +304,16 @@ async function fetchBusData() {
 // 祝日データの取得
 async function fetchHolidayData() {
     try {
+        if (USE_INLINE_DATA) {
+            // インラインデータを使用
+            console.log('インライン祝日データを使用します');
+            holidayData = INLINE_HOLIDAY_DATA;
+            return;
+        }
+        
         // 開発時はサンプルデータを使用
         const dataUrl = USE_SAMPLE_DATA ? 'data/sample_holidays.json' : 'data/holidays.json';
+        console.log(`ファイルからデータを読み込みます: ${dataUrl}`);
         const response = await fetch(dataUrl);
         
         if (!response.ok) {
@@ -59,6 +323,14 @@ async function fetchHolidayData() {
         holidayData = await response.json();
     } catch (error) {
         console.error('祝日データの取得に失敗しました:', error);
+        
+        if (USE_INLINE_DATA) {
+            // エラー時にインラインデータを使用
+            console.log('ファイル読み込みエラーのためインライン祝日データを使用します');
+            holidayData = INLINE_HOLIDAY_DATA;
+            return;
+        }
+        
         holidayData = {};
     }
 }
