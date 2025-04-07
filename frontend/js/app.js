@@ -1,11 +1,14 @@
 // グローバル変数
 let busData = null;
+let holidayData = null;
 let currentDayType = 'weekday'; // 'weekday', 'saturday', 'holiday'
+const USE_SAMPLE_DATA = true; // 開発時はサンプルデータを使用
 
 // ページ読み込み時の処理
 document.addEventListener('DOMContentLoaded', () => {
     // 初期データ取得
     fetchBusData();
+    fetchHolidayData();
     
     // 時計の開始
     updateClock();
@@ -18,16 +21,45 @@ document.addEventListener('DOMContentLoaded', () => {
 // バスデータの取得
 async function fetchBusData() {
     try {
-        const response = await fetch('data/bus_timetable.json');
+        // 開発時はサンプルデータを使用
+        const dataUrl = USE_SAMPLE_DATA ? 'data/sample_bus_timetable.json' : 'data/bus_timetable.json';
+        const response = await fetch(dataUrl);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
         busData = await response.json();
         
         // 最終更新時間の表示
-        document.getElementById('last-updated').textContent = new Date().toLocaleString();
+        document.getElementById('last-updated').textContent = new Date().toLocaleString('ja-JP');
         
         // バス時刻の表示更新
         updateBusTimes();
     } catch (error) {
         console.error('バスデータの取得に失敗しました:', error);
+        document.querySelector('#chigasaki .next-time').textContent = '--:--';
+        document.querySelector('#chigasaki .remaining').textContent = 'データ取得エラー';
+        document.querySelector('#tsujido .next-time').textContent = '--:--';
+        document.querySelector('#tsujido .remaining').textContent = 'データ取得エラー';
+    }
+}
+
+// 祝日データの取得
+async function fetchHolidayData() {
+    try {
+        // 開発時はサンプルデータを使用
+        const dataUrl = USE_SAMPLE_DATA ? 'data/sample_holidays.json' : 'data/holidays.json';
+        const response = await fetch(dataUrl);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        holidayData = await response.json();
+    } catch (error) {
+        console.error('祝日データの取得に失敗しました:', error);
+        holidayData = {};
     }
 }
 
@@ -51,20 +83,32 @@ function updateClock() {
 // 曜日種別の判定
 function checkDayType(date) {
     const day = date.getDay();
+    const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD形式
     let newDayType;
     
-    // TODO: 祝日判定の追加
-    
-    // 仮の曜日判定（0=日曜, 6=土曜）
-    if (day === 0) {
+    // 祝日判定
+    if (holidayData && holidayData[dateStr]) {
         newDayType = 'holiday';
         document.getElementById('calendar-type').textContent = '休日ダイヤ';
-    } else if (day === 6) {
+        document.getElementById('calendar-type').title = holidayData[dateStr]; // 祝日名をツールチップに表示
+    } 
+    // 日曜判定
+    else if (day === 0) {
+        newDayType = 'holiday';
+        document.getElementById('calendar-type').textContent = '休日ダイヤ';
+        document.getElementById('calendar-type').title = '日曜日';
+    } 
+    // 土曜判定
+    else if (day === 6) {
         newDayType = 'saturday';
         document.getElementById('calendar-type').textContent = '土曜ダイヤ';
-    } else {
+        document.getElementById('calendar-type').title = '土曜日';
+    } 
+    // 平日判定
+    else {
         newDayType = 'weekday';
         document.getElementById('calendar-type').textContent = '平日ダイヤ';
+        document.getElementById('calendar-type').title = '平日';
     }
     
     // 曜日種別が変わった場合にバス時刻を更新
@@ -79,7 +123,9 @@ function updateBusTimes() {
     if (!busData) return;
     
     const now = new Date();
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentMinutes = currentHour * 60 + currentMinute;
     
     // 茅ヶ崎駅行きの次のバス
     updateNextBus('chigasaki', busData.chigasaki[currentDayType], currentMinutes);
@@ -90,6 +136,13 @@ function updateBusTimes() {
 
 // 次のバス時刻の計算と表示
 function updateNextBus(stationId, timetable, currentMinutes) {
+    if (!timetable || timetable.length === 0) {
+        document.querySelector(`#${stationId} .next-time`).textContent = '--:--';
+        document.querySelector(`#${stationId} .remaining`).textContent = 'データがありません';
+        document.querySelector(`#${stationId} .following-buses`).innerHTML = '';
+        return;
+    }
+    
     // 時刻表から「現在時刻より後」のバスを抽出
     const upcomingBuses = timetable.filter(bus => {
         const busMinutes = parseInt(bus.hour) * 60 + parseInt(bus.minute);
@@ -124,5 +177,13 @@ function updateNextBus(stationId, timetable, currentMinutes) {
             `<p>次: ${followingBusTime} (あと${followingMinutesRemaining}分)</p>`;
     } else {
         document.querySelector(`#${stationId} .following-buses`).innerHTML = '';
+    }
+    
+    // 残り時間が近い場合、強調表示
+    const remainingElement = document.querySelector(`#${stationId} .remaining`);
+    if (minutesRemaining <= 5) {
+        remainingElement.classList.add('urgent');
+    } else {
+        remainingElement.classList.remove('urgent');
     }
 }
