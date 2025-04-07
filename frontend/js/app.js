@@ -70,7 +70,24 @@ function updateClock() {
     // 日付表示
     const days = ['日', '月', '火', '水', '木', '金', '土'];
     const dateString = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日 (${days[now.getDay()]})`;
-    document.getElementById('current-date').textContent = dateString;
+    const dateElement = document.getElementById('current-date');
+    dateElement.textContent = dateString;
+    
+    // 曜日による日付表示の色分け
+    const day = now.getDay();
+    const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD形式
+    
+    // 日付の色分け用のクラスをリセット
+    dateElement.classList.remove('holiday', 'saturday', 'sunday');
+    
+    // 祝日、日曜、土曜の色分け
+    if (holidayData && holidayData[dateStr]) {
+        dateElement.classList.add('holiday');
+    } else if (day === 0) {
+        dateElement.classList.add('sunday');
+    } else if (day === 6) {
+        dateElement.classList.add('saturday');
+    }
     
     // 時刻表示
     const timeString = now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
