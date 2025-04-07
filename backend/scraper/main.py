@@ -4,6 +4,7 @@
 import os
 import json
 import datetime
+import time
 import requests
 from bs4 import BeautifulSoup
 import jpholiday
@@ -41,36 +42,88 @@ def fetch_timetable(url):
     
     return response.text
 
-def parse_timetable(html_content):
-    """HTMLから時刻表データを解析"""
-    soup = BeautifulSoup(html_content, 'lxml')
-    result = {}
+def fetch_all_day_types(url):
+    """平日・土曜・休日の全ての時刻表データを取得"""
+    all_days_data = {}
     
-    # 曜日タブごとにデータを抽出
-    for i, day_type in enumerate(DAY_TYPES):
-        timetable_section = soup.select(f'#time_table_tab_{i+1}')
-        if not timetable_section:
-            print(f"No timetable found for {day_type}")
-            result[day_type] = []
+    # まず基本のHTMLを取得
+    base_html = fetch_timetable(url)
+    if not base_html:
+        return None
+    
+    # 平日データを解析 (最初のページ表示時)
+    soup = BeautifulSoup(base_html, 'lxml')
+    weekday_data = parse_timetable_from_table(soup.select('table')[2])  # 時刻表は通常3番目のテーブル
+    all_days_data['weekday'] = weekday_data
+    
+    # 土曜・休日データを取得するには通常はJavaScriptでタブを切り替える必要があるが、
+    # 実際のサイトでは別のリクエストを送るか別のDOMノードが読み込まれる可能性がある
+    # ここでは簡易的にセレクタを使って取得を試みる
+    
+    # 土曜日データを取得
+    # 神奈中サイトではタブクリック後に時間を置かないとデータが反映されないことがあるため、
+    # 実際の実装では複数回リクエストを送る可能性がある
+    saturday_html = fetch_timetable(url + "&day=1")  # パラメータを追加してリクエスト
+    if saturday_html:
+        soup = BeautifulSoup(saturday_html, 'lxml')
+        saturday_data = parse_timetable_from_table(soup.select('table')[2])
+        all_days_data['saturday'] = saturday_data
+    else:
+        all_days_data['saturday'] = []
+    
+    # 休日データを取得
+    holiday_html = fetch_timetable(url + "&day=2")  # パラメータを追加してリクエスト
+    if holiday_html:
+        soup = BeautifulSoup(holiday_html, 'lxml')
+        holiday_data = parse_timetable_from_table(soup.select('table')[2])
+        all_days_data['holiday'] = holiday_data
+    else:
+        all_days_data['holiday'] = []
+    
+    return all_days_data
+
+def parse_timetable_from_table(table):
+    """テーブルから時刻表データを解析"""
+    timetable_data = []
+    
+    # テーブルが見つからない場合
+    if not table:
+        print("Table not found")
+        return []
+    
+    # 行を順に解析
+    rows = table.select('tr')
+    for row in rows:
+        cells = row.select('td')
+        if len(cells) < 2:
             continue
         
-        time_table = timetable_section[0]
+        # 時間を取得 (最初のセルに含まれる)
+        hour_text = cells[0].text.strip()
+        if not hour_text or '時' not in hour_text:
+            continue
         
-        # 時間ごとの時刻リスト
-        timetable_data = []
+        hour = hour_text.replace('時', '')
         
-        # 時間行を取得
-        hour_rows = time_table.select('dl.sp_tblTime')
+        # 分を取得 (2番目のセルに含まれる)
+        minute_cell = cells[1]
+        minute_items = minute_cell.select('li')
         
-        for hour_row in hour_rows:
-            # 時を取得
-            hour = hour_row.select('dt')[0].text.strip()
-            
-            # 分リストを取得
-            minute_elements = hour_row.select('dd span')
-            
-            for minute_el in minute_elements:
-                minute = minute_el.text.strip()
+        # リストアイテムがない場合は直接テキストをチェック
+        if not minute_items:
+            minute_text = minute_cell.text.strip()
+            if minute_text:
+                minutes = minute_text.split()
+                for minute in minutes:
+                    if minute.isdigit():
+                        timetable_data.append({
+                            'hour': hour,
+                            'minute': minute
+                        })
+        else:
+            # リストアイテムから分を取得
+            for minute_item in minute_items:
+                minute = minute_item.text.strip()
                 
                 # 特殊記号の処理（例: 停留所通過など）
                 note = ''
@@ -94,10 +147,8 @@ def parse_timetable(html_content):
                     bus_time['note'] = note
                     
                 timetable_data.append(bus_time)
-        
-        result[day_type] = timetable_data
     
-    return result
+    return timetable_data
 
 def save_timetable(data, filename='bus_timetable.json'):
     """時刻表データをJSONとして保存"""
@@ -118,15 +169,18 @@ def main():
     result = {}
     
     for direction, url in URLs.items():
-        html_content = fetch_timetable(url)
-        if html_content:
-            result[direction] = parse_timetable(html_content)
+        print(f"Processing {direction} direction...")
+        all_days_data = fetch_all_day_types(url)
+        if all_days_data:
+            result[direction] = all_days_data
     
     # 結果をJSONとして保存
     save_timetable(result)
     
     # 現在の祝日情報も生成・保存
     generate_holiday_data()
+    
+    print("Scraping completed successfully!")
 
 def generate_holiday_data(months_ahead=6):
     """祝日データを生成して保存"""
