@@ -1,0 +1,21 @@
+{
+  "name": "美住町バス比較",
+  "short_name": "美住町バス",
+  "description": "美住町バス停の茅ヶ崎駅行きと辻堂駅行きを比較するモバイル向けWebサイト",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0066cc",
+  "icons": [
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
